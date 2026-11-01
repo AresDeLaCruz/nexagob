@@ -10,6 +10,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRegistrar from "./pages/AdminRegistrar";
 import AdminEmpleados from "./pages/AdminEmpleados";
 import MisCalificaciones from "./pages/MisCalificaciones";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Privacidad from "./pages/Privacidad";
+import Terminos from "./pages/Terminos";
+
+
 function App() {
   return (
     <HashRouter>
@@ -18,6 +24,19 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+<Route
+ path="/privacidad"
+ element={<Privacidad />}
+/>
+<Route
+  path="/terminos"
+  element={<Terminos />}
+/>
+<Route
+  path="/reset-password/:token"
+  element={<ResetPassword />}
+/>
           <Route path="/register" element={<Register />} />
 
           {/* 🔐 ADMIN */}

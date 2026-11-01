@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt"); // 🔐 IMPORTANTE
+const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { OAuth2Client } = require("google-auth-library");
 const db = require("./db");
@@ -113,11 +114,30 @@ app.post("/login", (req, res) => {
     }
 
     const user = result[0];
+    if (
+  user.bloqueado_hasta &&
+  new Date(user.bloqueado_hasta) > new Date()
+) {
+  return res.json({
+    success: false,
+    message:
+      "Cuenta bloqueada. Intenta más tarde."
+  });
+}
 
     // 🔐 Comparar contraseña encriptada
     const match = await bcrypt.compare(password, user.password);
 
     if (match) {
+      db.query(
+  `
+  UPDATE usuarios
+  SET intentos_fallidos = 0,
+      bloqueado_hasta = NULL
+  WHERE id_usuario = ?
+  `,
+  [user.id_usuario]
+);
 
   // 🔥 1. ADMIN ENTRA SIN OTP
   if (user.id_rol === 1) {
@@ -155,12 +175,48 @@ app.post("/login", (req, res) => {
     user
   });
 }
-    else {
-      res.json({
-        success: false,
-        message: "Contraseña incorrecta"
-      });
-    }
+  else {
+
+  const intentos = user.intentos_fallidos + 1;
+
+  if (intentos >= 3) {
+
+    const bloqueadoHasta =
+      new Date(Date.now() + 15 * 60 * 1000);
+
+    db.query(
+      `
+      UPDATE usuarios
+      SET intentos_fallidos = 0,
+          bloqueado_hasta = ?
+      WHERE id_usuario = ?
+      `,
+      [bloqueadoHasta, user.id_usuario]
+    );
+
+    return res.json({
+      success: false,
+      message:
+        "Cuenta bloqueada por 15 minutos"
+    });
+
+  }
+
+  db.query(
+    `
+    UPDATE usuarios
+    SET intentos_fallidos = ?
+    WHERE id_usuario = ?
+    `,
+    [intentos, user.id_usuario]
+  );
+
+  return res.json({
+    success: false,
+    message:
+      `Contraseña incorrecta. Intento ${intentos}/3`
+  });
+}
   });
 });
 
@@ -547,6 +603,131 @@ return res.json({
     });
 
   }
+
+});
+
+app.post("/forgot-password", (req, res) => {
+
+  const { email } = req.body;
+
+  const token = crypto.randomBytes(32).toString("hex");
+
+  const expira = new Date(
+    Date.now() + 60 * 60 * 1000
+  ); // 1 hora
+
+  db.query(
+    `
+    UPDATE usuarios
+    SET reset_token = ?,
+        reset_expira = ?
+    WHERE email = ?
+    `,
+    [token, expira, email],
+    async (err, result) => {
+
+      if (err) {
+        return res.status(500).json(err);
+      }
+
+      if (result.affectedRows === 0) {
+        return res.json({
+          success: false,
+          message: "Correo no encontrado"
+        });
+      }
+
+      const link =
+  `http://localhost:5173/#/reset-password/${token}`;
+
+      try {
+
+        await transporter.sendMail({
+          from: "NexaGob",
+          to: email,
+          subject: "Recuperación de contraseña",
+          html: `
+            <h2>Recuperar contraseña</h2>
+
+            <p>Haz clic aquí:</p>
+
+            <a href="${link}">
+              Cambiar contraseña
+            </a>
+
+            <p>Expira en 1 hora.</p>
+          `
+        });
+
+        res.json({
+          success: true,
+          message: "Correo enviado"
+        });
+
+      } catch (e) {
+        console.log(e);
+
+        res.status(500).json({
+          success: false
+        });
+      }
+
+    }
+  );
+
+});
+app.post("/reset-password", async (req, res) => {
+
+  const { token, password } = req.body;
+
+  const hash = await bcrypt.hash(password, 10);
+
+  db.query(
+    `
+    SELECT *
+    FROM usuarios
+    WHERE reset_token = ?
+      AND reset_expira > NOW()
+    `,
+    [token],
+    (err, result) => {
+
+      if (err) {
+        return res.status(500).json(err);
+      }
+
+      if (result.length === 0) {
+        return res.json({
+          success: false,
+          message: "Token inválido o expirado"
+        });
+      }
+
+      const user = result[0];
+
+      db.query(
+        `
+        UPDATE usuarios
+        SET password = ?,
+            reset_token = NULL,
+            reset_expira = NULL
+        WHERE id_usuario = ?
+        `,
+        [hash, user.id_usuario],
+        (err2) => {
+
+          if (err2) {
+            return res.status(500).json(err2);
+          }
+
+          res.json({
+            success: true
+          });
+        }
+      );
+
+    }
+  );
 
 });
 

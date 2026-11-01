@@ -33,51 +33,132 @@ function MisCalificaciones() {
     resultadosUnicos.length >= 3 &&
     resultadosUnicos.every(r => Number(r.calificacion) >= 8);
 
-  /* 📄 PDF */
+
+  /* 📄 CERTIFICADO CON PLANTILLA */
   const descargarCertificado = () => {
-    const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
 
+  const img = new Image();
+
+  img.src = "/nexagob/certificado.png";
+
+  img.onload = () => {
+
+    doc.addImage(
+      img,
+      "PNG",
+      0,
+      0,
+      210,
+      297
+    );
+
+
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.text("CERTIFICADO", 70, 30);
 
-    doc.setFontSize(14);
-    doc.text(`Otorgado a: ${user.nombre}`, 20, 60);
-    doc.text("Por aprobar satisfactoriamente los exámenes", 20, 80);
+    doc.text(
+      user.nombre || "Usuario",
+      105,
+      140,
+      {
+        align: "center"
+      }
+    );
 
-    resultadosUnicos.forEach((r: any, i) => {
-      doc.text(`${r.titulo}: ${r.calificacion}`, 20, 110 + i * 10);
+
+    doc.setFontSize(12);
+
+    doc.text(
+      new Date().toLocaleDateString(),
+      105,
+      230,
+      {
+        align: "center"
+      }
+    );
+
+
+    resultadosUnicos.forEach((r: any, index) => {
+
+      doc.text(
+        `${r.titulo}: ${r.calificacion}`,
+        105,
+        160 + (index * 8),
+        {
+          align: "center"
+        }
+      );
+
     });
 
-    doc.save("certificado.pdf");
+
+    doc.save(
+      `Certificado_${user.nombre}.pdf`
+    );
+
   };
+
+
+  img.onerror = () => {
+    console.error("No se pudo cargar certificado.png");
+  };
+};
+
 
   return (
     <div className="container">
-      <h2 className="mb-4">📊 Mis Calificaciones</h2>
+
+      <h2 className="mb-4">
+        📊 Mis Calificaciones
+      </h2>
+
 
       <table className="table">
+
         <thead>
           <tr>
             <th>Examen</th>
             <th>Calificación</th>
           </tr>
         </thead>
+
+
         <tbody>
+
           {resultadosUnicos.map((r: any, i) => (
+
             <tr key={i}>
               <td>{r.titulo}</td>
               <td>{r.calificacion}</td>
             </tr>
+
           ))}
+
         </tbody>
+
       </table>
 
+
+
       {/* 🎓 CERTIFICADO */}
+
       {aprobado && (
-        <button className="btn btn-success mt-3" onClick={descargarCertificado}>
+
+        <button
+          className="btn btn-success mt-3"
+          onClick={descargarCertificado}
+        >
           Descargar certificado 🎓
         </button>
+
       )}
+
+
     </div>
   );
 }

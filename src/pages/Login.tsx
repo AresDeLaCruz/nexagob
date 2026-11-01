@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,9 +16,7 @@ function Login() {
   // =========================
   const loginGoogle = async (credential: string) => {
     try {
-      const response = await fetch(
-        "http://localhost:3001/google-login",
-        {
+      const response = await fetch("http://localhost:3001/google-login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ credential }),
@@ -171,6 +168,11 @@ function Login() {
                   >
                     Ingresar
                   </button>
+                  <div className="text-center mt-3">
+  <a href="#/forgot-password">
+    ¿Olvidaste tu contraseña?
+  </a>
+</div>
                 </form>
 
                 <hr />
@@ -191,7 +193,13 @@ function Login() {
                 </div>
               </>
             )}
+<div className="text-center mt-3">
 
+<a href="#/privacidad">
+Aviso de privacidad
+</a>
+
+</div>
             {/* ================= OTP ================= */}
             {step === "otp" && (
               <div className="text-center">
