@@ -43,6 +43,17 @@ function AdminDashboard() {
         </div>
 
       </div>
+
+      <div className="col-md-4 mb-4">
+  <div
+    className="card p-4 text-center shadow hover-card"
+    style={{ cursor: "pointer" }}
+    onClick={() => navigate("/admin-cursos")}
+  >
+    <h3>📚</h3>
+    <h5 className="mt-3">Cursos</h5>
+  </div>
+</div>
     </div>
   );
 }

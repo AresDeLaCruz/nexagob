@@ -14,7 +14,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Privacidad from "./pages/Privacidad";
 import Terminos from "./pages/Terminos";
-
+import AdminCursos from "./pages/AdminCursos";
 
 function App() {
   return (
@@ -80,6 +80,16 @@ function App() {
   element={
     <ProtectedRoute rol={2}>
       <MisCalificaciones />
+    </ProtectedRoute>
+  }
+/>
+
+
+<Route
+  path="/admin-cursos"
+  element={
+    <ProtectedRoute rol={1}>
+      <AdminCursos />
     </ProtectedRoute>
   }
 />

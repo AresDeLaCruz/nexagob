@@ -731,6 +731,206 @@ app.post("/reset-password", async (req, res) => {
 
 });
 
+
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+// Configuración de multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, "uploads");
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, unique + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === "application/pdf") {
+      cb(null, true);
+    } else {
+      cb(new Error("Solo se permiten archivos PDF"));
+    }
+  }
+});
+
+// Servir archivos PDF
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+/* =========================
+   🔹 CURSOS
+========================= */
+
+// Obtener todos los cursos
+app.get("/cursos", (req, res) => {
+  db.query("SELECT * FROM cursos ORDER BY id_curso DESC", (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json(result);
+  });
+});
+
+// Crear curso
+app.post("/cursos", (req, res) => {
+  const { titulo, descripcion } = req.body;
+  db.query(
+    "INSERT INTO cursos (titulo, descripcion) VALUES (?, ?)",
+    [titulo, descripcion],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ id_curso: result.insertId, message: "Curso creado" });
+    }
+  );
+});
+
+// Eliminar curso
+app.delete("/cursos/:id", (req, res) => {
+  const { id } = req.params;
+  db.query("DELETE FROM cursos WHERE id_curso = ?", [id], (err) => {
+    if (err) return res.status(500).json(err);
+    res.json({ message: "Curso eliminado" });
+  });
+});
+
+/* =========================
+   🔹 TEMAS (PDFs)
+========================= */
+
+// Obtener temas de un curso
+app.get("/cursos/:id/temas", (req, res) => {
+  const { id } = req.params;
+  db.query(
+    "SELECT * FROM temas WHERE id_curso = ? ORDER BY orden ASC",
+    [id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json(result);
+    }
+  );
+});
+
+// Crear tema + subir PDF
+app.post("/temas", upload.single("pdf"), (req, res) => {
+  const { id_curso, titulo, orden } = req.body;
+  const archivo_pdf = req.file ? req.file.filename : null;
+
+  db.query(
+    "INSERT INTO temas (id_curso, titulo, archivo_pdf, orden) VALUES (?, ?, ?, ?)",
+    [id_curso, titulo, archivo_pdf, orden || 1],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ id_tema: result.insertId, message: "Tema creado" });
+    }
+  );
+});
+
+// Eliminar tema
+app.delete("/temas/:id", (req, res) => {
+  const { id } = req.params;
+
+  // Primero obtenemos el nombre del archivo para borrarlo del disco
+  db.query("SELECT archivo_pdf FROM temas WHERE id_tema = ?", [id], (err, result) => {
+    if (err) return res.status(500).json(err);
+
+    if (result.length > 0 && result[0].archivo_pdf) {
+      const filePath = path.join(__dirname, "uploads", result[0].archivo_pdf);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    }
+
+    db.query("DELETE FROM temas WHERE id_tema = ?", [id], (err2) => {
+      if (err2) return res.status(500).json(err2);
+      res.json({ message: "Tema eliminado" });
+    });
+  });
+});
+
+/* =========================
+   🔹 PROGRESO DEL EMPLEADO
+========================= */
+
+// Marcar tema como visto
+app.post("/progreso/marcar", (req, res) => {
+  const { id_usuario, id_curso, id_tema } = req.body;
+
+  db.query(
+    `INSERT INTO progreso_detalle (id_usuario, id_curso, id_tema, completado)
+     VALUES (?, ?, ?, 1)
+     ON DUPLICATE KEY UPDATE completado = 1`,
+    [id_usuario, id_curso, id_tema],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Tema marcado como visto" });
+    }
+  );
+});
+
+// Obtener progreso de un usuario en un curso
+app.get("/progreso/:id_usuario/:id_curso", (req, res) => {
+  const { id_usuario, id_curso } = req.params;
+
+  // Total de temas del curso
+  db.query(
+    "SELECT COUNT(*) AS total FROM temas WHERE id_curso = ?",
+    [id_curso],
+    (err, totalResult) => {
+      if (err) return res.status(500).json(err);
+
+      const total = totalResult[0].total;
+
+      // Temas completados
+      db.query(
+        `SELECT id_tema FROM progreso_detalle 
+         WHERE id_usuario = ? AND id_curso = ? AND completado = 1`,
+        [id_usuario, id_curso],
+        (err2, completados) => {
+          if (err2) return res.status(500).json(err2);
+
+          const porcentaje = total === 0 ? 0 : Math.round((completados.length / total) * 100);
+
+          res.json({
+            porcentaje,
+            temas_vistos: completados.map(t => t.id_tema),
+            total_temas: total
+          });
+        }
+      );
+    }
+  );
+});
+
+// Obtener todos los cursos con su progreso (para el empleado)
+app.get("/cursos-con-progreso/:id_usuario", (req, res) => {
+  const { id_usuario } = req.params;
+
+  const sql = `
+    SELECT 
+      c.id_curso,
+      c.titulo,
+      c.descripcion,
+      (SELECT COUNT(*) FROM temas t WHERE t.id_curso = c.id_curso) AS total_temas,
+      (SELECT COUNT(*) FROM progreso_detalle pd 
+       WHERE pd.id_curso = c.id_curso AND pd.id_usuario = ? AND pd.completado = 1) AS temas_vistos
+    FROM cursos c
+    ORDER BY c.id_curso DESC
+  `;
+
+  db.query(sql, [id_usuario], (err, result) => {
+    if (err) return res.status(500).json(err);
+
+    const cursos = result.map(c => ({
+      ...c,
+      porcentaje: c.total_temas === 0 ? 0 : Math.round((c.temas_vistos / c.total_temas) * 100)
+    }));
+
+    res.json(cursos);
+  });
+});
+
 /* =========================
    🚀 SERVER
 ========================= */
