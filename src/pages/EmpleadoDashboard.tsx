@@ -1,330 +1,196 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import EmpleadoBottomNav from "../components/EmpleadoBottomNav";
 
 function EmpleadoDashboard() {
   const [cursos, setCursos] = useState<any[]>([]);
-  const [cursoSeleccionado, setCursoSeleccionado] = useState<any>(null);
-  const [temas, setTemas] = useState<any[]>([]);
-  const [progreso, setProgreso] = useState<any>({ porcentaje: 0, temas_vistos: [] });
   const [examenes, setExamenes] = useState<any[]>([]);
-  const [examenSeleccionado, setExamenSeleccionado] = useState<any[]>([]);
-  const [respuestas, setRespuestas] = useState<any>({});
-  const [resultado, setResultado] = useState<any>(null);
-  const [idExamenActual, setIdExamenActual] = useState<number | null>(null);
-  const [vistaActual, setVistaActual] = useState<"cursos" | "examen">("cursos");
-
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // Cargar cursos con progreso
   useEffect(() => {
     if (user.id_usuario) {
       fetch(`http://localhost:3001/cursos-con-progreso/${user.id_usuario}`)
         .then((res) => res.json())
-        .then((data) => setCursos(data));
+        .then((data) => setCursos(data))
+        .catch(console.error);
     }
-  }, [user.id_usuario]);
 
-  // Cargar exámenes (para poder resolverlos cuando quiera)
-  useEffect(() => {
     fetch("http://localhost:3001/examenes")
       .then((res) => res.json())
-      .then((data) => setExamenes(data));
-  }, []);
+      .then((data) => setExamenes(data))
+      .catch(console.error);
+  }, [user.id_usuario]);
 
-  // Cuando selecciona un curso
-  const seleccionarCurso = async (curso: any) => {
-    setCursoSeleccionado(curso);
-    setVistaActual("cursos");
-    setExamenSeleccionado([]);
-    setResultado(null);
+  // Cálculos para el dashboard
+  const cursosEnProgreso = cursos.filter((c) => c.porcentaje > 0 && c.porcentaje < 100).length;
+  const examenesPendientes = examenes.length; // puedes mejorar esta lógica después
+  const progresoGeneral =
+    cursos.length > 0
+      ? Math.round(cursos.reduce((acc, c) => acc + (c.porcentaje || 0), 0) / cursos.length)
+      : 0;
 
-    // Cargar temas del curso
-    const resTemas = await fetch(`http://localhost:3001/cursos/${curso.id_curso}/temas`);
-    const dataTemas = await resTemas.json();
-    setTemas(dataTemas);
-
-    // Cargar progreso
-    const resProg = await fetch(
-      `http://localhost:3001/progreso/${user.id_usuario}/${curso.id_curso}`
-    );
-    const dataProg = await resProg.json();
-    setProgreso(dataProg);
-  };
-
-  // Marcar tema como visto
-  const marcarComoVisto = async (id_tema: number) => {
-    await fetch("http://localhost:3001/progreso/marcar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id_usuario: user.id_usuario,
-        id_curso: cursoSeleccionado.id_curso,
-        id_tema,
-      }),
-    });
-
-    // Actualizar progreso local
-    const resProg = await fetch(
-      `http://localhost:3001/progreso/${user.id_usuario}/${cursoSeleccionado.id_curso}`
-    );
-    const dataProg = await resProg.json();
-    setProgreso(dataProg);
-
-    // Actualizar lista de cursos (para el % general)
-    const resCursos = await fetch(
-      `http://localhost:3001/cursos-con-progreso/${user.id_usuario}`
-    );
-    const dataCursos = await resCursos.json();
-    setCursos(dataCursos);
-  };
-
-  // Cargar examen
-  const cargarExamen = async (id: number) => {
-    const res = await fetch(`http://localhost:3001/examen/${id}`);
-    const data = await res.json();
-    setExamenSeleccionado(data);
-    setIdExamenActual(id);
-    setRespuestas({});
-    setResultado(null);
-    setVistaActual("examen");
-  };
-
-  const seleccionarRespuesta = (id_pregunta: number, id_respuesta: number) => {
-    setRespuestas({
-      ...respuestas,
-      [id_pregunta]: id_respuesta,
-    });
-  };
-
-  const enviarExamen = async () => {
-    const payload = Object.keys(respuestas).map((id_pregunta) => ({
-      id_pregunta,
-      id_respuesta: respuestas[id_pregunta],
-    }));
-
-    const res = await fetch("http://localhost:3001/resolver", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id_usuario: user.id_usuario,
-        id_examen: idExamenActual,
-        respuestas: payload,
-      }),
-    });
-
-    const data = await res.json();
-    setResultado(data);
-  };
-
-  const yaVisto = (id_tema: number) => progreso.temas_vistos?.includes(id_tema);
+  const proximosPendientes = cursos
+    .filter((c) => c.porcentaje < 100)
+    .slice(0, 3);
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        {/* ========== SIDEBAR ========== */}
-        <div className="col-md-3 bg-light min-vh-100 p-4 border-end">
-          <h5 className="mb-4">📚 Mis Cursos</h5>
-
-          {cursos.length === 0 && (
-            <p className="text-muted small">Aún no hay cursos disponibles</p>
-          )}
-
-          {cursos.map((curso) => (
-            <div
-              key={curso.id_curso}
-              className={`card mb-3 p-3 ${
-                cursoSeleccionado?.id_curso === curso.id_curso
-                  ? "border-primary border-2"
-                  : ""
-              }`}
-              style={{ cursor: "pointer" }}
-              onClick={() => seleccionarCurso(curso)}
-            >
-              <strong className="d-block mb-1">{curso.titulo}</strong>
-
-              {/* Barra de progreso */}
-              <div className="progress mb-1" style={{ height: "8px" }}>
-                <div
-                  className="progress-bar bg-success"
-                  style={{ width: `${curso.porcentaje}%` }}
-                ></div>
-              </div>
-              <small className="text-muted">{curso.porcentaje}% completado</small>
-            </div>
-          ))}
-
-          <hr />
-
-          <h6 className="mt-4 mb-3">📝 Exámenes</h6>
-          {examenes.map((ex) => (
-            <button
-              key={ex.id_examen}
-              className="btn btn-outline-danger btn-sm w-100 mb-2"
-              onClick={() => cargarExamen(ex.id_examen)}
-            >
-              {ex.titulo}
+    <div className="empleado-page">
+      {/* ========== HEADER ========== */}
+      <div className="empleado-header">
+        <div className="empleado-header-top">
+          <h1>COMUNICACIONES</h1>
+          <div className="empleado-header-icons">
+            <button aria-label="Notificaciones">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.10.20.0.3.78 1H1c.316-.323.555-.659.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z"/>
+              </svg>
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* ========== CONTENIDO PRINCIPAL ========== */}
-        <div className="col-md-9 p-5">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 style={{ color: "#2f5d3a" }}>
-              Bienvenido, {user.nombre}
-            </h2>
-
-            <Link to="/mis-calificaciones" className="btn btn-outline-primary">
-              📊 Mis Calificaciones
-            </Link>
-          </div>
-
-          {/* ========== VISTA DE CURSO ========== */}
-          {vistaActual === "cursos" && cursoSeleccionado && (
-            <div>
-              <h3 className="mb-3">{cursoSeleccionado.titulo}</h3>
-              <p className="text-muted">{cursoSeleccionado.descripcion}</p>
-
-              {/* Progreso del curso */}
-              <div className="mb-4">
-                <div className="d-flex justify-content-between mb-1">
-                  <span>Progreso del curso</span>
-                  <strong>{progreso.porcentaje}%</strong>
-                </div>
-                <div className="progress" style={{ height: "12px" }}>
-                  <div
-                    className="progress-bar bg-success"
-                    style={{ width: `${progreso.porcentaje}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              <h5 className="mb-3">Temas del curso</h5>
-
-              {temas.length === 0 && (
-                <div className="alert alert-info">
-                  Este curso aún no tiene temas cargados.
-                </div>
-              )}
-
-              {temas.map((tema) => (
-                <div
-                  key={tema.id_tema}
-                  className="card mb-3 p-3 shadow-sm"
-                >
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                      <h6 className="mb-1">
-                        {tema.titulo}
-                        {yaVisto(tema.id_tema) && (
-                          <span className="badge bg-success ms-2">Visto ✓</span>
-                        )}
-                      </h6>
-
-                      {tema.archivo_pdf && (
-                        <a
-                          href={`http://localhost:3001/uploads/${tema.archivo_pdf}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn btn-sm btn-outline-primary mt-1"
-                        >
-                          📄 Abrir PDF
-                        </a>
-                      )}
-                    </div>
-
-                    {!yaVisto(tema.id_tema) ? (
-                      <button
-                        className="btn btn-success btn-sm"
-                        onClick={() => marcarComoVisto(tema.id_tema)}
-                      >
-                        Marcar como visto
-                      </button>
-                    ) : (
-                      <button className="btn btn-secondary btn-sm" disabled>
-                        Completado
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* ========== VISTA DE EXAMEN ========== */}
-          {vistaActual === "examen" && examenSeleccionado.length > 0 && (
-            <div>
-              <button
-                className="btn btn-link mb-3"
-                onClick={() => setVistaActual("cursos")}
-              >
-                ← Volver a cursos
-              </button>
-
-              <h4 className="mb-4">Resolver examen</h4>
-
-              {[
-                ...new Map(
-                  examenSeleccionado.map((p) => [p.id_pregunta, p])
-                ).values(),
-              ].map((pregunta: any) => (
-                <div key={pregunta.id_pregunta} className="card p-3 mb-3">
-                  <strong className="mb-2 d-block">{pregunta.pregunta}</strong>
-
-                  {examenSeleccionado
-                    .filter((r) => r.id_pregunta === pregunta.id_pregunta)
-                    .map((op: any) => (
-                      <div key={op.id_respuesta} className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name={`pregunta-${pregunta.id_pregunta}`}
-                          id={`resp-${op.id_respuesta}`}
-                          onChange={() =>
-                            seleccionarRespuesta(
-                              pregunta.id_pregunta,
-                              op.id_respuesta
-                            )
-                          }
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`resp-${op.id_respuesta}`}
-                        >
-                          {op.respuesta}
-                        </label>
-                      </div>
-                    ))}
-                </div>
-              ))}
-
-              <button className="btn btn-success btn-lg" onClick={enviarExamen}>
-                Enviar examen
-              </button>
-
-              {resultado && (
-                <div className="alert alert-info mt-4">
-                  <h5>Resultado</h5>
-                  <p>Correctas: {resultado.correctas} de {resultado.total}</p>
-                  <p>
-                    <strong>
-                      Calificación: {resultado.calificacion.toFixed(2)}
-                    </strong>
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Mensaje inicial */}
-          {vistaActual === "cursos" && !cursoSeleccionado && (
-            <div className="text-center text-muted mt-5">
-              <h4>Selecciona un curso del menú izquierdo</h4>
-              <p>o elige un examen para resolverlo</p>
-            </div>
-          )}
+        <div className="empleado-greeting">
+          <h2>Hola, {user.nombre?.split(" ")[0] || "Usuario"}</h2>
+          <p>¡Es un gusto verte de nuevo!</p>
         </div>
       </div>
+
+      {/* ========== BANNER ========== */}
+      <div className="empleado-banner">
+        <div
+          style={{
+            height: "110px",
+            background: "linear-gradient(135deg, #2c5f2d 0%, #1a3a1b 100%)",
+            display: "flex",
+            alignItems: "flex-end",
+            padding: "14px 16px",
+            color: "white",
+            fontSize: "0.9rem",
+            fontWeight: 500,
+          }}
+        >
+          Tu compromiso impulsa la conectividad del país
+        </div>
+      </div>
+
+      {/* ========== STATS ========== */}
+      <div className="empleado-stats">
+        <div className="empleado-stat-card">
+          <div className="stat-icon rojo">📚</div>
+          <div className="stat-number">{cursosEnProgreso}</div>
+          <div className="stat-label">Cursos en progreso</div>
+        </div>
+
+        <div className="empleado-stat-card">
+          <div className="stat-icon naranja">📝</div>
+          <div className="stat-number">{examenesPendientes}</div>
+          <div className="stat-label">Exámenes pendientes</div>
+        </div>
+      </div>
+
+      {/* ========== PROGRESO GENERAL ========== */}
+      <div className="empleado-progress-card">
+        <h3>📊 Tu progreso general</h3>
+        <div className="progress-bar-container">
+          <div
+            className="progress-bar-fill"
+            style={{ width: `${progresoGeneral}%` }}
+          ></div>
+        </div>
+        <div className="progress-percent">{progresoGeneral}%</div>
+      </div>
+      {/* ========== PRÓXIMOS PENDIENTES (Cursos) ========== */}
+      <div className="empleado-section">
+        <div className="empleado-section-header">
+          <h3>Próximos pendientes</h3>
+          <Link to="/empleado/cursos">Ver todos</Link>
+        </div>
+
+        {proximosPendientes.length === 0 ? (
+          <div className="empleado-empty">
+            <div style={{ fontSize: "2rem" }}>🎉</div>
+            <p>¡No tienes cursos pendientes!</p>
+          </div>
+        ) : (
+          proximosPendientes.map((curso) => (
+            <div key={curso.id_curso} className="curso-pendiente-card">
+              <div
+                style={{
+                  width: "90px",
+                  height: "90px",
+                  background: "linear-gradient(135deg, #6a0f2b, #9b2d4a)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontSize: "1.8rem",
+                  flexShrink: 0,
+                }}
+              >
+                📖
+              </div>
+              <div className="curso-pendiente-info">
+                <h4>{curso.titulo}</h4>
+                <div className="estado">
+                  {curso.porcentaje > 0
+                    ? `En progreso · ${curso.porcentaje}%`
+                    : "Pendiente"}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ========== EXÁMENES PENDIENTES ========== */}
+      <div className="empleado-section">
+        <div className="empleado-section-header">
+          <h3>Exámenes disponibles</h3>
+          <Link to="/empleado/cursos">Ver todos</Link>
+        </div>
+
+        {examenes.length === 0 ? (
+          <div className="empleado-empty">
+            <div style={{ fontSize: "2rem" }}>📝</div>
+            <p>No hay exámenes disponibles por ahora</p>
+          </div>
+        ) : (
+          examenes.slice(0, 3).map((ex) => (
+            <div
+              key={ex.id_examen}
+              className="curso-pendiente-card"
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+  window.location.href = `/#/empleado/examen/${ex.id_examen}`;
+}}
+            >
+              <div
+                style={{
+                  width: "90px",
+                  height: "90px",
+                  background: "linear-gradient(135deg, #c45c26, #e07a3d)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontSize: "1.8rem",
+                  flexShrink: 0,
+                }}
+              >
+                📝
+              </div>
+              <div className="curso-pendiente-info">
+                <h4>{ex.titulo}</h4>
+                <div className="estado" style={{ color: "#c45c26" }}>
+                  Disponible para resolver
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ========== BOTTOM NAV ========== */}
+      <EmpleadoBottomNav />
     </div>
   );
 }
