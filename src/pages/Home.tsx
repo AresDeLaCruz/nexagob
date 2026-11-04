@@ -14,7 +14,7 @@ function Home() {
             marginBottom: "40px"
           }}
         >
-          Bienvenido
+          Bienvenidos
         </h1>
 
         {/* TARJETAS */}
