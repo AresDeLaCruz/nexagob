@@ -1,74 +1,72 @@
+import { Link } from "react-router-dom";
+import logo from "../assets/logo.jpg"; // ajusta la ruta si es necesario
+
 function Home() {
   return (
-    <div style={{ backgroundColor: "#e8dcc7", minHeight: "100vh" }}>
-      
-      {/* CONTENIDO */}
-      <div className="container text-center py-5">
-
-        {/* TÍTULO */}
-        <h1 
-          style={{ 
-            fontSize: "70px", 
-            color: "#3b5e3b", 
-            fontFamily: "serif",
-            marginBottom: "40px"
-          }}
-        >
-          Bienvenidos
-        </h1>
-
-        {/* TARJETAS */}
-        <div 
-          className="mx-auto p-4"
-          style={{
-            backgroundColor: "#f5f5f5",
-            borderRadius: "10px",
-            maxWidth: "800px"
-          }}
-        >
-          <div className="row">
-            
-            {/* CURSOS */}
-            <div className="col-md-6 mb-3">
-              <div 
-                className="card shadow-sm"
-                style={{ borderRadius: "10px" }}
-              >
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Cursos</h5>
-                  <p className="card-text">
-                    Accede a cursos de capacitación diseñados para tu desarrollo profesional.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* EVALUACIONES */}
-            <div className="col-md-6 mb-3">
-              <div 
-                className="card shadow-sm"
-                style={{ borderRadius: "10px" }}
-              >
-                <div className="card-body">
-                  <h5 className="card-title fw-bold">Evaluaciones</h5>
-                  <p className="card-text">
-                    Realiza exámenes y obtén certificación interna.
-                  </p>
-                </div>
-              </div>
-            </div>
-
+    <div className="home-page">
+      {/* ========== HEADER ========== */}
+      <header className="home-header">
+        <div className="home-header-content">
+          <img src={logo} alt="Logo Comunicaciones" className="home-logo" />
+          <div className="home-header-text">
+            <h1>COMUNICACIONES</h1>
+            <p>SECRETARÍA DE INFRAESTRUCTURA, COMUNICACIONES Y TRANSPORTES</p>
           </div>
         </div>
+      </header>
 
-        {/* FOOTER TEXTO */}
-        <div className="mt-5" style={{ color: "#3b5e3b" }}>
-          <span className="me-3">CDMX</span>
-          <span className="me-3">COYOACAN</span>
-          <span>📍</span>
+      {/* ========== HERO ========== */}
+      <section className="home-hero">
+        <h2>Plataforma de Capacitación</h2>
+        <p>
+          Fortalece tus competencias y contribuye al servicio público de calidad.
+        </p>
+
+        <div className="home-cta">
+                <div className="home-cta">
+          <Link to="/login" className="btn-home-primary">
+            Iniciar sesión
+          </Link>
+        </div>
+        </div>
+      </section>
+
+      {/* ========== CARDS ========== */}
+      <section className="home-features">
+        <div className="home-feature-card">
+          <div className="feature-icon">📚</div>
+          <h3>Cursos</h3>
+          <p>
+            Accede a cursos de capacitación diseñados para tu desarrollo profesional en el servicio público.
+          </p>
         </div>
 
-      </div>
+        <div className="home-feature-card">
+          <div className="feature-icon">📝</div>
+          <h3>Evaluaciones</h3>
+          <p>
+            Realiza exámenes, obtén tu calificación y genera certificados oficiales de capacitación.
+          </p>
+        </div>
+
+        <div className="home-feature-card">
+          <div className="feature-icon">🏆</div>
+          <h3>Certificación</h3>
+          <p>
+            Demuestra tu compromiso institucional y descarga tu certificado al completar el programa.
+          </p>
+        </div>
+      </section>
+
+      {/* ========== FOOTER ========== */}
+      <footer className="home-footer">
+        <p>Gobierno de la Ciudad de México</p>
+        <div className="home-footer-links">
+          <Link to="/privacidad">Aviso de privacidad</Link>
+          <span>•</span>
+          <Link to="/terminos">Términos y condiciones</Link>
+        </div>
+      </footer>
     </div>
   );
 }
