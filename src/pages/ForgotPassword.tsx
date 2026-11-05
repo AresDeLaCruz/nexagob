@@ -7,7 +7,7 @@ function ForgotPassword() {
   const enviar = async () => {
 
     const res = await fetch(
-      "${API_URL}/forgot-password",
+      `${API_URL}/forgot-password`,
       {
         method: "POST",
         headers: {

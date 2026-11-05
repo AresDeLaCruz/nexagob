@@ -33,7 +33,7 @@ function AdminRegistrar() {
 
     setErrorPassword("");
 
-    await fetch("${API_URL}/empleados", {
+    await fetch(`${API_URL}/empleados`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

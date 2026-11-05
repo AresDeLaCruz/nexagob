@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { API_URL } from "../config"; 
+import { API_URL } from "../config";
+
 function AdminCursos() {
   const [cursos, setCursos] = useState<any[]>([]);
   const [titulo, setTitulo] = useState("");
@@ -11,7 +12,7 @@ function AdminCursos() {
   const [orden, setOrden] = useState(1);
 
   const obtenerCursos = async () => {
-    const res = await fetch("${API_URL}/cursos");
+    const res = await fetch(`${API_URL}/cursos`)
     const data = await res.json();
     setCursos(data);
   };
@@ -23,7 +24,7 @@ function AdminCursos() {
   const crearCurso = async () => {
     if (!titulo.trim()) return alert("Escribe un título");
 
-    await fetch("${API_URL}/cursos", {
+    await fetch(`${API_URL}/cursos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ titulo, descripcion }),
@@ -60,7 +61,7 @@ function AdminCursos() {
     formData.append("orden", orden.toString());
     formData.append("pdf", archivo);
 
-    await fetch("${API_URL}/temas", {
+    await fetch(`${API_URL}/temas`, {
       method: "POST",
       body: formData,
     });

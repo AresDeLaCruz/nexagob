@@ -15,7 +15,7 @@ function EmpleadoDashboard() {
         .catch(console.error);
     }
 
-    fetch("${API_URL}/examenes")
+    fetch(`${API_URL}/examenes`)
       .then((res) => res.json())
       .then((data) => setExamenes(data))
       .catch(console.error);

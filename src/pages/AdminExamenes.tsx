@@ -12,7 +12,7 @@ function AdminExamenes() {
      🔹 OBTENER EXÁMENES
   ========================= */
   const obtenerExamenes = async () => {
-    const res = await fetch("${API_URL}/examenes");
+    const res = await fetch(`${API_URL}/examenes`);
     const data = await res.json();
     setExamenes(data);
   };
@@ -67,7 +67,7 @@ function AdminExamenes() {
      ➕ CREAR EXAMEN
   ========================= */
   const crearExamen = async () => {
-    const res = await fetch("${API_URL}/examenes", {
+    const res = await fetch(`${API_URL}/examenes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,7 +79,7 @@ function AdminExamenes() {
     const id_examen = data.id_examen;
 
     for (let p of preguntas) {
-      const resPregunta = await fetch("${API_URL}/preguntas", {
+      const resPregunta = await fetch(`${API_URL}/preguntas`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ function AdminExamenes() {
 
       const dataPregunta = await resPregunta.json();
 
-      await fetch("${API_URL}/respuestas", {
+      await fetch(`${API_URL}/respuestas`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

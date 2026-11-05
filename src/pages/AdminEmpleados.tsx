@@ -9,7 +9,7 @@ function AdminEmpleados() {
   const [idEditar, setIdEditar] = useState<number | null>(null);
 
   const obtenerEmpleados = async () => {
-    const res = await fetch("${API_URL}/empleados");
+    const res = await fetch(`${API_URL}/empleados`);
     const data = await res.json();
     setEmpleados(data);
   };

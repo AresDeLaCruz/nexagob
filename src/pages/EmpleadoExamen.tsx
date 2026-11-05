@@ -82,7 +82,7 @@ function EmpleadoExamen() {
         id_respuesta: respuestas[Number(id_pregunta)],
       }));
 
-      const res = await fetch("${API_URL}/resolver", {
+      const res = await fetch(`${API_URL}/resolver`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

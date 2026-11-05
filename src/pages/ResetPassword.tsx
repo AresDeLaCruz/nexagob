@@ -12,7 +12,7 @@ function ResetPassword() {
   const cambiarPassword = async () => {
 
     const res = await fetch(
-      "${API_URL}/reset-password",
+      `${API_URL}/reset-password`,
       {
         method: "POST",
         headers: {

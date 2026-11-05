@@ -52,7 +52,7 @@ function EmpleadoCursoDetalle() {
     progreso.temas_vistos?.includes(id_tema);
 
   const marcarComoVisto = async (id_tema: number) => {
-    await fetch("${API_URL}/progreso/marcar", {
+    await fetch(`${API_URL}/progreso/marcar`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
