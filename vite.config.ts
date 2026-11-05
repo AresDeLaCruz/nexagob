@@ -19,7 +19,7 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/nexagob/',
+        start_url: '/',
         icons: [
           {
             src: '/nexagob/pwa-192x192.png',
