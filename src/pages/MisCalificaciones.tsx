@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
-
+import { API_URL } from "../config"; 
 function MisCalificaciones() {
   const [misResultados, setMisResultados] = useState<any[]>([]);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const cargarResultados = () => {
-    fetch(`http://localhost:3001/resultados/${user.id_usuario}`)
+    fetch(`${API_URL}/resultados/${user.id_usuario}`)
       .then((res) => res.json())
       .then((data) => setMisResultados(data));
   };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { API_URL } from "../config"; 
 function AdminCursos() {
   const [cursos, setCursos] = useState<any[]>([]);
   const [titulo, setTitulo] = useState("");
@@ -11,7 +11,7 @@ function AdminCursos() {
   const [orden, setOrden] = useState(1);
 
   const obtenerCursos = async () => {
-    const res = await fetch("http://localhost:3001/cursos");
+    const res = await fetch("${API_URL}/cursos");
     const data = await res.json();
     setCursos(data);
   };
@@ -23,7 +23,7 @@ function AdminCursos() {
   const crearCurso = async () => {
     if (!titulo.trim()) return alert("Escribe un título");
 
-    await fetch("http://localhost:3001/cursos", {
+    await fetch("${API_URL}/cursos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ titulo, descripcion }),
@@ -36,7 +36,7 @@ function AdminCursos() {
 
   const eliminarCurso = async (id: number) => {
     if (!confirm("¿Eliminar este curso y todos sus temas?")) return;
-    await fetch(`http://localhost:3001/cursos/${id}`, { method: "DELETE" });
+    await fetch(`${API_URL}/cursos/${id}`, { method: "DELETE" });
     obtenerCursos();
     setCursoSeleccionado(null);
     setTemas([]);
@@ -44,7 +44,7 @@ function AdminCursos() {
 
   const cargarTemas = async (id_curso: number) => {
     setCursoSeleccionado(id_curso);
-    const res = await fetch(`http://localhost:3001/cursos/${id_curso}/temas`);
+    const res = await fetch(`${API_URL}/cursos/${id_curso}/temas`);
     const data = await res.json();
     setTemas(data);
   };
@@ -60,7 +60,7 @@ function AdminCursos() {
     formData.append("orden", orden.toString());
     formData.append("pdf", archivo);
 
-    await fetch("http://localhost:3001/temas", {
+    await fetch("${API_URL}/temas", {
       method: "POST",
       body: formData,
     });
@@ -73,7 +73,7 @@ function AdminCursos() {
 
   const eliminarTema = async (id_tema: number) => {
     if (!confirm("¿Eliminar este tema?")) return;
-    await fetch(`http://localhost:3001/temas/${id_tema}`, { method: "DELETE" });
+    await fetch(`${API_URL}/temas/${id_tema}`, { method: "DELETE" });
     if (cursoSeleccionado) cargarTemas(cursoSeleccionado);
   };
 
@@ -169,7 +169,7 @@ function AdminCursos() {
                     {t.archivo_pdf && (
                       <div>
                         <a
-                          href={`http://localhost:3001/uploads/${t.archivo_pdf}`}
+                          href={`${API_URL}/uploads/${t.archivo_pdf}`}
                           target="_blank"
                           rel="noreferrer"
                           className="small"

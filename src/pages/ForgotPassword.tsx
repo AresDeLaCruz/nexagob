@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { API_URL } from "../config"; 
 function ForgotPassword() {
 
   const [email, setEmail] = useState("");
@@ -7,7 +7,7 @@ function ForgotPassword() {
   const enviar = async () => {
 
     const res = await fetch(
-      "http://localhost:3001/forgot-password",
+      "${API_URL}/forgot-password",
       {
         method: "POST",
         headers: {

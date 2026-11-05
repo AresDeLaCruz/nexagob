@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { API_URL } from "../config"; 
 function AdminRegistrar() {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
@@ -33,7 +33,7 @@ function AdminRegistrar() {
 
     setErrorPassword("");
 
-    await fetch("http://localhost:3001/empleados", {
+    await fetch("${API_URL}/empleados", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

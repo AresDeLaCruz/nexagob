@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { API_URL } from "../config"; 
 function AdminEmpleados() {
   const [empleados, setEmpleados] = useState<any[]>([]);
   const [nombre, setNombre] = useState("");
@@ -9,7 +9,7 @@ function AdminEmpleados() {
   const [idEditar, setIdEditar] = useState<number | null>(null);
 
   const obtenerEmpleados = async () => {
-    const res = await fetch("http://localhost:3001/empleados");
+    const res = await fetch("${API_URL}/empleados");
     const data = await res.json();
     setEmpleados(data);
   };
@@ -22,7 +22,7 @@ function AdminEmpleados() {
      🗑 ELIMINAR
   ========================= */
   const eliminarEmpleado = async (id: number) => {
-    await fetch(`http://localhost:3001/empleados/${id}`, {
+    await fetch(`${API_URL}/empleados/${id}`, {
       method: "DELETE",
     });
     obtenerEmpleados();
@@ -42,7 +42,7 @@ function AdminEmpleados() {
      💾 ACTUALIZAR
   ========================= */
   const actualizarEmpleado = async () => {
-    await fetch(`http://localhost:3001/empleados/${idEditar}`, {
+    await fetch(`${API_URL}/empleados/${idEditar}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

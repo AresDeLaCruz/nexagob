@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import EmpleadoBottomNav from "../components/EmpleadoBottomNav";
-
+import { API_URL } from "../config"; 
 function EmpleadoDashboard() {
   const [cursos, setCursos] = useState<any[]>([]);
   const [examenes, setExamenes] = useState<any[]>([]);
@@ -9,13 +9,13 @@ function EmpleadoDashboard() {
 
   useEffect(() => {
     if (user.id_usuario) {
-      fetch(`http://localhost:3001/cursos-con-progreso/${user.id_usuario}`)
+      fetch(`${API_URL}/cursos-con-progreso/${user.id_usuario}`)
         .then((res) => res.json())
         .then((data) => setCursos(data))
         .catch(console.error);
     }
 
-    fetch("http://localhost:3001/examenes")
+    fetch("${API_URL}/examenes")
       .then((res) => res.json())
       .then((data) => setExamenes(data))
       .catch(console.error);

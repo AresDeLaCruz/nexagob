@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import logo from "../assets/logo.jpg"; // o "../assets/logo.jpg" según donde esté
+import logo from "../assets/logo.jpg";
+import { API_URL } from "../config";   // ← esta línea es nueva
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ function Login() {
   const loginGoogle = async (credential: string) => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3001/google-login", {
+      const response = await fetch(`${API_URL}/google-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential }),
@@ -53,7 +54,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/login", {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -91,7 +92,7 @@ function Login() {
   const verifyOtp = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3001/verify-otp", {
+      const res = await fetch(`${API_URL}/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, otp }),
@@ -179,7 +180,7 @@ function Login() {
                 <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
               </div>
 
-              {/* Google Login (opcional, se puede ocultar si no lo quieren en móvil) */}
+              {/* Google Login */}
               <div className="login-google">
                 <GoogleLogin
                   onSuccess={(credentialResponse) => {

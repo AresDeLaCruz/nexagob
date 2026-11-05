@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import EmpleadoBottomNav from "../components/EmpleadoBottomNav";
-
+import { API_URL } from "../config"; 
 type Filtro = "todos" | "en_progreso" | "pendientes" | "completados";
 
 function EmpleadoCursos() {
@@ -12,7 +12,7 @@ function EmpleadoCursos() {
 
   useEffect(() => {
     if (user.id_usuario) {
-      fetch(`http://localhost:3001/cursos-con-progreso/${user.id_usuario}`)
+      fetch(`${API_URL}/cursos-con-progreso/${user.id_usuario}`)
         .then((res) => res.json())
         .then((data) => setCursos(data))
         .catch(console.error);

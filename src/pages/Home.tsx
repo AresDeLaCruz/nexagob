@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.jpg"; // ajusta la ruta si es necesario
-
+import { API_URL } from "../config"; 
 function Home() {
   return (
     <div className="home-page">

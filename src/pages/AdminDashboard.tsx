@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
+import { API_URL } from "../config"; 
 function AdminDashboard() {
   const navigate = useNavigate();
 

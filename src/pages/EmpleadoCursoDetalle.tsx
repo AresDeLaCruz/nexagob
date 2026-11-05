@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import EmpleadoBottomNav from "../components/EmpleadoBottomNav";
-
+import { API_URL } from "../config"; 
 function EmpleadoCursoDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ function EmpleadoCursoDetalle() {
       try {
         // Cargar datos del curso (desde la lista de cursos con progreso)
         const resCursos = await fetch(
-          `http://localhost:3001/cursos-con-progreso/${user.id_usuario}`
+          `${API_URL}/cursos-con-progreso/${user.id_usuario}`
         );
         const dataCursos = await resCursos.json();
         const cursoEncontrado = dataCursos.find(
@@ -27,14 +27,14 @@ function EmpleadoCursoDetalle() {
 
         // Cargar temas
         const resTemas = await fetch(
-          `http://localhost:3001/cursos/${id}/temas`
+          `${API_URL}/cursos/${id}/temas`
         );
         const dataTemas = await resTemas.json();
         setTemas(dataTemas);
 
         // Cargar progreso
         const resProg = await fetch(
-          `http://localhost:3001/progreso/${user.id_usuario}/${id}`
+          `${API_URL}/progreso/${user.id_usuario}/${id}`
         );
         const dataProg = await resProg.json();
         setProgreso(dataProg);
@@ -52,7 +52,7 @@ function EmpleadoCursoDetalle() {
     progreso.temas_vistos?.includes(id_tema);
 
   const marcarComoVisto = async (id_tema: number) => {
-    await fetch("http://localhost:3001/progreso/marcar", {
+    await fetch("${API_URL}/progreso/marcar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -64,7 +64,7 @@ function EmpleadoCursoDetalle() {
 
     // Recargar progreso
     const resProg = await fetch(
-      `http://localhost:3001/progreso/${user.id_usuario}/${id}`
+      `${API_URL}/progreso/${user.id_usuario}/${id}`
     );
     const dataProg = await resProg.json();
     setProgreso(dataProg);
@@ -153,7 +153,7 @@ function EmpleadoCursoDetalle() {
                   if (tema.archivo_pdf) {
                     // Abrir PDF o ir a contenido
                     window.open(
-                      `http://localhost:3001/uploads/${tema.archivo_pdf}`,
+                      `${API_URL}/uploads/${tema.archivo_pdf}`,
                       "_blank"
                     );
                   }
@@ -198,7 +198,7 @@ function EmpleadoCursoDetalle() {
             const primerPendiente = temas.find((t) => !yaVisto(t.id_tema));
             if (primerPendiente?.archivo_pdf) {
               window.open(
-                `http://localhost:3001/uploads/${primerPendiente.archivo_pdf}`,
+                `${API_URL}/uploads/${primerPendiente.archivo_pdf}`,
                 "_blank"
               );
               marcarComoVisto(primerPendiente.id_tema);

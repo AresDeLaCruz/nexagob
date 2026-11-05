@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import EmpleadoBottomNav from "../components/EmpleadoBottomNav";
-
+import { API_URL } from "../config"; 
 function EmpleadoExamen() {
   const { id } = useParams(); // id del examen
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ function EmpleadoExamen() {
   useEffect(() => {
     const cargar = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/examen/${id}`);
+        const res = await fetch(`${API_URL}/examen/${id}`);
         const data = await res.json();
 
         // Agrupar por pregunta
@@ -82,7 +82,7 @@ function EmpleadoExamen() {
         id_respuesta: respuestas[Number(id_pregunta)],
       }));
 
-      const res = await fetch("http://localhost:3001/resolver", {
+      const res = await fetch("${API_URL}/resolver", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

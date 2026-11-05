@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { API_URL } from "../config"; 
 function AdminExamenes() {
   const [examenes, setExamenes] = useState<any[]>([]);
   const [titulo, setTitulo] = useState("");
@@ -12,7 +12,7 @@ function AdminExamenes() {
      🔹 OBTENER EXÁMENES
   ========================= */
   const obtenerExamenes = async () => {
-    const res = await fetch("http://localhost:3001/examenes");
+    const res = await fetch("${API_URL}/examenes");
     const data = await res.json();
     setExamenes(data);
   };
@@ -67,7 +67,7 @@ function AdminExamenes() {
      ➕ CREAR EXAMEN
   ========================= */
   const crearExamen = async () => {
-    const res = await fetch("http://localhost:3001/examenes", {
+    const res = await fetch("${API_URL}/examenes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,7 +79,7 @@ function AdminExamenes() {
     const id_examen = data.id_examen;
 
     for (let p of preguntas) {
-      const resPregunta = await fetch("http://localhost:3001/preguntas", {
+      const resPregunta = await fetch("${API_URL}/preguntas", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ function AdminExamenes() {
 
       const dataPregunta = await resPregunta.json();
 
-      await fetch("http://localhost:3001/respuestas", {
+      await fetch("${API_URL}/respuestas", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +117,7 @@ function AdminExamenes() {
   const cargarExamen = async (id: number) => {
     console.log("EDITAR EXAMEN:", id);
 
-    const res = await fetch(`http://localhost:3001/examen-completo/${id}`);
+    const res = await fetch(`${API_URL}/examen-completo/${id}`);
     const data = await res.json();
 
     const agrupado: any = {};
@@ -149,7 +149,7 @@ function AdminExamenes() {
      💾 ACTUALIZAR EXAMEN
   ========================= */
   const actualizarExamen = async () => {
-    const res = await fetch(`http://localhost:3001/examen-completo/${idEditar}`, {
+    const res = await fetch(`${API_URL}/examen-completo/${idEditar}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -174,7 +174,7 @@ function AdminExamenes() {
   const eliminarExamen = async (id: number) => {
     if (!confirm("¿Seguro que quieres eliminar este examen?")) return;
 
-    const res = await fetch(`http://localhost:3001/examenes/${id}`, {
+    const res = await fetch(`${API_URL}/examenes/${id}`, {
       method: "DELETE",
     });
 
